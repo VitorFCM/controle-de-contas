@@ -1,0 +1,9 @@
+.Geral{
+    position: absolute;
+    top: 50px;
+    background-color: blueviolet;
+    width: 80%;
+    height: 50%;
+    border-radius: 5px;
+    padding-right: 10px;
+}
