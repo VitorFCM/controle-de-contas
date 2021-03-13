@@ -17,6 +17,7 @@ class CsvParser{
     constructor(fileContent){
         var rows = fileContent.split('\n')
 
+        this.headers = [];
         this.headers = rows[0].split(',')
 
         this.accounts = [];
@@ -74,33 +75,30 @@ function openFile(){
 }
 
 function Geral(){
-    const [list, setList] = useState('');
+    const [list, setList] = useState(new CsvParser("nome,numero"));
     
-    let headers, accounts
-    if(list !== undefined && list.headers !== undefined && list.account !== undefined){
-        headers = list.headers.map((header) =>
-            <td>{header}</td>
-        );
+    let headers = list.headers.map((header) =>
+        <td>{header}</td>
+    );
 
-        accounts = list.accounts.map((account) =>
-            <tr>
-                <td>{account.nome}</td>
-                <td>{account.data}</td>
-            </tr>
-        );
-    }
-    
+    let accounts = list.accounts.map((account) =>
+        <tr>
+            <td>{account.nome}</td>
+            <td>{account.data}</td>
+        </tr>
+    );
+    console.log(headers[0].props.children);
+    //{headers === undefined ? null : headers}
+    //{accounts === undefined ? null : accounts}
     
     return (
         <>  
             
             <table>
                 <tr>
-                    {headers === undefined ? null : headers}
+                    {headers}
                 </tr>
-                
-                {accounts === undefined ? null : accounts}
-                
+                {accounts}
             </table>
 
             <input type="text" name="name" id="nameInput"  placeholder="Nome"/>
@@ -109,9 +107,9 @@ function Geral(){
             <input type="button" id="openFile" onClick={()=>{
                 console.log("lista antes " + list)
                 let a = openFile();
-                console.log("clicou " + a)
+                console.log("clicou " + a.headers)
                 setList(a);
-                console.log("lista depois " + list)
+                console.log("lista depois " + list.headers[1])
             }} value="clica fdp"/> 
             
         </>
