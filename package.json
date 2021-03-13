@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^12.7.3",
     "concurrently": "^6.0.0",
     "cross-env": "^7.0.3",
+    "csv": "^5.3.2",
     "csv-parser": "^3.0.0",
     "electron-is-dev": "^1.2.0",
     "fs": "^0.0.1-security",
