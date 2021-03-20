@@ -1,7 +1,9 @@
 import './geral.css';
 
-import React, { useState } from 'react';
-import csvParser from 'csv-parser';
+import React from 'react';
+//import csvParser from 'csv-parser';
+//import { render } from '@testing-library/react';
+//import { ReactComponent } from '*.svg';
 
 
 const fs = window.require('fs');
@@ -35,27 +37,23 @@ class CsvParser{
             
             //var newAccount = new Conta(columns[0], columns[1]);
             
-            this.accounts.push(columns)
+            this.accounts.push(columns) 
         }
 
     }
 
-    ffff(){
-        console.log()
-    }
-
     newLine(newLine){
-        
+        this.accounts.push(newLine)
         if(newLine.length === this.headers.length){
             this.fileContent += '\n';
             for (var i = 0; i < newLine.length; i++) {
                 this.fileContent += newLine[i]
+                
                 if(i < newLine.length - 1){
                     this.fileContent += ','
                 } 
             }
-            this.fileContent += '\n';
-
+            
             console.log("New file content " + this.fileContent);
         }
         
@@ -120,7 +118,7 @@ function dataInserction(list) {
 function openFile(){
 
     let filePath = dialog.showOpenDialogSync();
-
+    
     if(filePath === undefined){
         console.log("No file selected");
         return null;
@@ -135,9 +133,68 @@ function openFile(){
     return parsed;
 }
 
-function Geral(){
-    const [list, setList] = useState(new CsvParser(null, "nome,numero"));
+
+export default class Geral extends React.Component{
+    state = {
+        objList:null,
+        inputs:null,
+        headers:null,
+        accounts:null
+    };
     
+
+    domElementsHandle = (objList)=>{
+        console.log("domHadle chamado" + objList.accounts)
+        let inputs = objList.headers.map((header) =>
+            <input type="text" id={header} placeholder={header}/>
+        );
+
+        let headers = objList.headers.map((header) =>
+            <td>{header}</td>
+        );
+
+        let accounts = objList.accounts.map((account) =>
+            <tr>
+                {account.map((column)=>
+                    <td>{column}</td>
+                )}
+            </tr>
+        );
+
+        this.setState({
+            objList: objList,
+            inputs: inputs,
+            headers: headers,
+            accounts: accounts
+        });
+    };
+    
+    render(){
+        return (
+            <>  
+                {this.state.inputs}
+    
+                <button id="openFile" onClick={() => this.domElementsHandle(openFile())}>Carregar arquivo csv</button>
+                <button id="addLineFile" onClick={() => this.domElementsHandle(dataInserction(this.state.objList))}>Adicionar linha</button>
+                <table>
+                    <tr>
+                        {this.state.headers}
+                    </tr>
+                    <tr>
+                        <br/>
+                    </tr>
+                    {this.state.accounts}
+                </table>
+    
+                 
+                
+            </>
+        );
+    };
+    
+    /*const [list, setList] = useState(new CsvParser(null, "nome,numero"));
+    
+
     let inputs = list.headers.map((header) =>
         <input type="text" id={header} placeholder={header}/>
     );
@@ -162,6 +219,8 @@ function Geral(){
                 if(a !== null){
                     setList(a);
                 }
+                console.log("conteudo do a " + a.accounts)
+                console.log("conteudo da lista " + list.accounts)
             }}>Clica</button>
             
             <button id="openFile" onClick={()=>{
@@ -169,7 +228,6 @@ function Geral(){
                 if(a !== null){
                     setList(a);
                 }
-                console.log("tipo do a " + typeof(a))
             }}>Carregar arquivo csv</button>
  
             <table>
@@ -187,6 +245,8 @@ function Geral(){
             
         </>
     );
+    export default Geral;
+    */
 }
 
-export default Geral;
+
