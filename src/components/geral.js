@@ -35,8 +35,6 @@ class CsvParser{
             var columns = []
             columns = rows[i].split(',')
             
-            //var newAccount = new Conta(columns[0], columns[1]);
-            
             this.accounts.push(columns) 
         }
 
@@ -67,9 +65,13 @@ function dataInserction(list) {
     let content = []
     for (var i = 0; i < list.headers.length; i++) {
         
-        var value = document.getElementById(list.headers[i]).value;
+        var val = document.getElementById(list.headers[i]).value;
+
+        document.getElementById(list.headers[i]).value = '';
+
+        val = val.replace(/,/g, ".");
         
-        content.push(value);
+        content.push(val);
     }
 
     list.newLine(content);
@@ -102,12 +104,12 @@ function dataInserction(list) {
 
     fs.writeFile(list.filePath, list.fileContent, (err) => {
         if (err) {
-            alert("An error ocurred updating the file" + err.message);
+            alert("Um erro ocorreu ao tentar atualizar o arquivo geral" + err.message);
             console.log(err);
             return;
         }
 
-        alert("The file has been succesfully saved");
+        alert("Essa linha foi adicionada no arquivo");
     });
 
     return list;
@@ -167,15 +169,17 @@ export default class Geral extends React.Component{
             headers: headers,
             accounts: accounts
         });
+
+        
     };
     
     render(){
         return (
             <>  
                 {this.state.inputs}
-    
-                <button id="openFile" onClick={() => this.domElementsHandle(openFile())}>Carregar arquivo csv</button>
-                <button id="addLineFile" onClick={() => this.domElementsHandle(dataInserction(this.state.objList))}>Adicionar linha</button>
+
+                
+                
                 <table>
                     <tr>
                         {this.state.headers}
@@ -185,68 +189,13 @@ export default class Geral extends React.Component{
                     </tr>
                     {this.state.accounts}
                 </table>
-    
-                 
+
+                {this.state.objList === null ? null
+                : <button id="addLineFile" onClick={() => this.domElementsHandle(dataInserction(this.state.objList))}>Adicionar linha</button>}
+                <button id="openFile" onClick={() => this.domElementsHandle(openFile())}>Carregar arquivo csv</button> 
                 
             </>
         );
     };
     
-    /*const [list, setList] = useState(new CsvParser(null, "nome,numero"));
-    
-
-    let inputs = list.headers.map((header) =>
-        <input type="text" id={header} placeholder={header}/>
-    );
-    let headers = list.headers.map((header) =>
-        <td>{header}</td>
-    );
-
-    let accounts = list.accounts.map((account) =>
-        <tr>
-            {account.map((column)=>
-                <td>{column}</td>
-            )}
-        </tr>
-    );
-    
-    return (
-        <>  
-            {inputs}
-
-            <button id="botao" onClick={()=>{
-                let a = dataInserction(list);
-                if(a !== null){
-                    setList(a);
-                }
-                console.log("conteudo do a " + a.accounts)
-                console.log("conteudo da lista " + list.accounts)
-            }}>Clica</button>
-            
-            <button id="openFile" onClick={()=>{
-                let a = openFile();
-                if(a !== null){
-                    setList(a);
-                }
-            }}>Carregar arquivo csv</button>
- 
-            <table>
-                <tr>
-                    {headers}
-                    
-                </tr>
-                <tr>
-                    <br/>
-                </tr>
-                {accounts}
-            </table>
-
-             
-            
-        </>
-    );
-    export default Geral;
-    */
 }
-
-
