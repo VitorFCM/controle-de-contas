@@ -1,6 +1,7 @@
 import './geral.css';
 
 import React from 'react';
+
 //import csvParser from 'csv-parser';
 //import { render } from '@testing-library/react';
 //import { ReactComponent } from '*.svg';
@@ -70,7 +71,7 @@ function dataInserction(list) {
         document.getElementById(list.headers[i]).value = '';
 
         val = val.replace(/,/g, ".");
-        
+
         content.push(val);
     }
 
@@ -138,24 +139,44 @@ function openFile(){
 
 export default class Geral extends React.Component{
     state = {
-        objList:null,
+        parsed:null,
         inputs:null,
         headers:null,
         accounts:null
     };
     
+    setNewParsed = (parsed)=>{
 
-    domElementsHandle = (objList)=>{
-        console.log("domHadle chamado" + objList.accounts)
-        let inputs = objList.headers.map((header) =>
+        this.setState({
+            parsed: parsed
+        });
+
+        this.domElementsHandle(parsed);
+    }
+
+    domElementsHandle = (parsed)=>{
+        console.log("domHadle chamado" + parsed.accounts)
+
+        let inputs = parsed.headers.map((header) =>
             <input type="text" id={header} placeholder={header}/>
         );
 
-        let headers = objList.headers.map((header) =>
-            <td>{header}</td>
+        let headers = parsed.headers.map((header) =>
+        <>
+            <td>
+                <select
+                  id="demo-simple-select"
+                  value={header}
+                  onChange={()=>this.domFilter({header})}
+                >
+                    <option value={header}>{header}</option>
+                    <option value="chaves">Chaves</option>
+                </select>
+            </td>
+        </>    
         );
-
-        let accounts = objList.accounts.map((account) =>
+        
+        let accounts = parsed.accounts.map((account) =>
             <tr>
                 {account.map((column)=>
                     <td>{column}</td>
@@ -164,21 +185,21 @@ export default class Geral extends React.Component{
         );
 
         this.setState({
-            objList: objList,
             inputs: inputs,
             headers: headers,
             accounts: accounts
         });
 
-        
     };
+
+    domFilter = (value)=>{
+        console.log(value)
+    }
     
     render(){
         return (
             <>  
                 {this.state.inputs}
-
-                
                 
                 <table>
                     <tr>
@@ -190,9 +211,10 @@ export default class Geral extends React.Component{
                     {this.state.accounts}
                 </table>
 
-                {this.state.objList === null ? null
-                : <button id="addLineFile" onClick={() => this.domElementsHandle(dataInserction(this.state.objList))}>Adicionar linha</button>}
-                <button id="openFile" onClick={() => this.domElementsHandle(openFile())}>Carregar arquivo csv</button> 
+                {this.state.parsed === null ? null
+                : <button id="addLineFile" onClick={() => this.setNewParsed(dataInserction(this.state.parsed))}>Adicionar linha</button>
+                }
+                <button id="openFile" onClick={() => this.setNewParsed(openFile())}>Carregar arquivo csv</button> 
                 
             </>
         );
