@@ -10,11 +10,18 @@ import React from 'react';
 const fs = window.require('fs');
 const {dialog} = window.require('electron').remote;
 
-class Conta{
-    constructor(nome, data){
-        this.nome = nome;
-        this.data = data;
+class columnHeader{
+    constructor(name){
+        this.name = name;
+        this.columnElements = [];
     }
+
+    addContent(element){
+        if(this.columnElements.indexOf(element) === -1){
+            this.columnElements.push(element)
+        } 
+    }
+
 }
 
 class CsvParser{
@@ -29,8 +36,8 @@ class CsvParser{
     }
 
     toArray(){
-        var rows = this.fileContent.split('\n')
-        this.headers = rows[0].split(',')
+        let rows = this.fileContent.split('\n');
+        
 
         for (var i = 1; i < rows.length; i++) {
             var columns = []
@@ -38,7 +45,18 @@ class CsvParser{
             
             this.accounts.push(columns) 
         }
+        
+        //this.headers = rows[0].split(',')
+        let headers = rows[0].split(',')
+        for(var i = 0; i < headers.length; i++){
+            let header = new columnHeader(headers[i]);
 
+            this.accounts.forEach((row)=>{
+                header.addContent(row[i]);
+            });
+            
+            this.headers.push(header);
+        }
     }
 
     newLine(newLine){
@@ -66,9 +84,9 @@ function dataInserction(list) {
     let content = []
     for (var i = 0; i < list.headers.length; i++) {
         
-        var val = document.getElementById(list.headers[i]).value;
+        var val = document.getElementById(list.headers[i].name).value;
 
-        document.getElementById(list.headers[i]).value = '';
+        document.getElementById(list.headers[i].name).value = '';
 
         val = val.replace(/,/g, ".");
 
@@ -140,6 +158,7 @@ function openFile(){
 export default class Geral extends React.Component{
     state = {
         parsed:null,
+        domParsed:null,
         inputs:null,
         headers:null,
         accounts:null
@@ -155,45 +174,85 @@ export default class Geral extends React.Component{
     }
 
     domElementsHandle = (parsed)=>{
-        console.log("domHadle chamado" + parsed.accounts)
+        if(parsed !== undefined && parsed !== null){
 
-        let inputs = parsed.headers.map((header) =>
-            <input type="text" id={header} placeholder={header}/>
-        );
+            let inputs = parsed.headers.map((header) =>
+                <input type="text" id={header.name} placeholder={header.name}/>
+            );
 
-        let headers = parsed.headers.map((header) =>
-        <>
-            <td>
-                <select
-                  id="demo-simple-select"
-                  value={header}
-                  onChange={()=>this.domFilter({header})}
-                >
-                    <option value={header}>{header}</option>
-                    <option value="chaves">Chaves</option>
-                </select>
-            </td>
-        </>    
-        );
-        
-        let accounts = parsed.accounts.map((account) =>
-            <tr>
-                {account.map((column)=>
-                    <td>{column}</td>
-                )}
-            </tr>
-        );
+            let headers = parsed.headers.map((header) =>
+            <>
+                <td>
+                    <form>
+                    <select
 
-        this.setState({
-            inputs: inputs,
-            headers: headers,
-            accounts: accounts
-        });
+                      onChange={(val)=>this.domFilter(val.target[val.target.options.selectedIndex].value)}
+                    >
+                        <option value={header.name}>{header.name}</option>
+                        {header.columnElements.map((element) =>
+                            <option value={element}>{element}</option>
+                        )}
+                        
+                    </select>
+                    </form>
+                </td>
+            </>    
+            );
+            
+            let accounts = parsed.accounts.map((account) =>
+                <tr>
+                    {account.map((column)=>
+                        <td>{column}</td>
+                    )}
+                </tr>
+            );
+
+            this.setState({
+                inputs: inputs,
+                headers: headers,
+                accounts: accounts
+            });
+        }  
 
     };
 
-    domFilter = (value)=>{
-        console.log(value)
+    domFilter = (element)=>{
+
+        let isHeader = false;
+        this.state.parsed.headers.forEach((header)=>{
+            if(header.name === element){
+                isHeader = true;
+            }
+        });
+
+        let newParsed;
+        if(this.state.newParsed === undefined || isHeader){
+            newParsed = Object.assign({}, this.state.parsed);
+        } else {
+            newParsed = Object.assign({}, this.state.newParsed);
+        }
+        console.log(newParsed)
+
+        
+
+        if(!isHeader){
+            let newAccounts = [];
+
+            newParsed.accounts.forEach((account)=>{
+            
+                if(account.indexOf(element) !== -1){
+                    newAccounts.push(account);
+                }
+            });
+
+            newParsed.accounts = newAccounts; 
+        }
+
+        this.setState({
+            newParsed: newParsed
+        });
+
+        this.domElementsHandle(newParsed);
     }
     
     render(){
