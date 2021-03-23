@@ -1,6 +1,8 @@
 import './geral.css';
 
 import React from 'react';
+import { parse } from 'csv';
+import csvParser from 'csv-parser';
 
 //import csvParser from 'csv-parser';
 //import { render } from '@testing-library/react';
@@ -75,8 +77,24 @@ class CsvParser{
         }
         
     }
+}
 
-
+function arrayToCsv(accounts){ //array of array to csv string
+    
+    let fileString;
+    accounts.forEach((account)=>{
+        
+        for (var i = 0; i < account.length; i++) {
+            fileString += account[i]//deve ter um undefined
+            
+            if(i < account.length - 1){
+                fileString += ','
+            } 
+        }
+        fileString += '\n';
+    });
+    console.log("conta "+fileString)
+    return fileString;
 }
 
 function dataInserction(list) {
@@ -154,6 +172,25 @@ function openFile(){
     return parsed;
 }
 
+function saveFile(fileContent){
+
+    let savePath = dialog.showSaveDialogSync();
+
+    if(savePath === undefined){
+        console.log("No file selected");
+        return null;
+    }
+
+    fs.writeFile(savePath, fileContent, (err) => {
+        if (err) {
+            alert("Um erro ocorreu ao tentar atualizar o arquivo geral" + err.message);
+            console.log(err);
+            return;
+        }
+
+        alert("O arquivo foi salvo em " + savePath);
+    });
+}
 
 export default class Geral extends React.Component{
     state = {
@@ -177,13 +214,15 @@ export default class Geral extends React.Component{
         if(parsed !== undefined && parsed !== null){
 
             let inputs = parsed.headers.map((header) =>
-                <input type="text" id={header.name} placeholder={header.name}/>
+                <td>
+                    <input type="text" id={header.name} placeholder={header.name}/>
+                </td>
             );
 
             let headers = parsed.headers.map((header) =>
             <>
                 <td>
-                    <form>
+                    
                     <select
 
                       onChange={(val)=>this.domFilter(val.target[val.target.options.selectedIndex].value)}
@@ -194,7 +233,7 @@ export default class Geral extends React.Component{
                         )}
                         
                     </select>
-                    </form>
+                    
                 </td>
             </>    
             );
@@ -225,42 +264,47 @@ export default class Geral extends React.Component{
             }
         });
 
-        let newParsed;
-        if(this.state.newParsed === undefined || isHeader){
-            newParsed = Object.assign({}, this.state.parsed);
+        let domParsed;
+        if(this.state.domParsed === null || isHeader){
+            domParsed = Object.assign({}, this.state.parsed);
         } else {
-            newParsed = Object.assign({}, this.state.newParsed);
+            domParsed = Object.assign({}, this.state.domParsed);
         }
-        console.log(newParsed)
-
+        console.log(domParsed)
+        console.log(this.state.parsed)
         
 
         if(!isHeader){
             let newAccounts = [];
 
-            newParsed.accounts.forEach((account)=>{
+            domParsed.accounts.forEach((account)=>{
             
                 if(account.indexOf(element) !== -1){
                     newAccounts.push(account);
                 }
             });
 
-            newParsed.accounts = newAccounts; 
+            domParsed.accounts = newAccounts;
+            
+           
         }
 
         this.setState({
-            newParsed: newParsed
+            domParsed: domParsed
         });
 
-        this.domElementsHandle(newParsed);
+        this.domElementsHandle(domParsed);
     }
     
     render(){
         return (
             <>  
-                {this.state.inputs}
+                
                 
                 <table>
+                    <tr>
+                        {this.state.inputs}
+                    </tr>
                     <tr>
                         {this.state.headers}
                     </tr>
@@ -273,8 +317,12 @@ export default class Geral extends React.Component{
                 {this.state.parsed === null ? null
                 : <button id="addLineFile" onClick={() => this.setNewParsed(dataInserction(this.state.parsed))}>Adicionar linha</button>
                 }
-                <button id="openFile" onClick={() => this.setNewParsed(openFile())}>Carregar arquivo csv</button> 
-                
+
+                <button id="openFile" onClick={() => this.setNewParsed(openFile())}>Carregar arquivo csv</button>
+
+                {this.state.domParsed === null ? null
+                : <button id="saveFile" onClick={() => saveFile(arrayToCsv(this.state.domParsed.accounts))}>Salvar arquivo</button>
+                }
             </>
         );
     };
