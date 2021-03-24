@@ -1,8 +1,10 @@
 import './geral.css';
 
 import React from 'react';
-import { parse } from 'csv';
-import csvParser from 'csv-parser';
+import CsvParser from '../classes/CsvParser'
+
+//import { parse } from 'csv';
+//import csvParser from 'csv-parser';
 
 //import csvParser from 'csv-parser';
 //import { render } from '@testing-library/react';
@@ -11,73 +13,6 @@ import csvParser from 'csv-parser';
 
 const fs = window.require('fs');
 const {dialog} = window.require('electron').remote;
-
-class columnHeader{
-    constructor(name){
-        this.name = name;
-        this.columnElements = [];
-    }
-
-    addContent(element){
-        if(this.columnElements.indexOf(element) === -1){
-            this.columnElements.push(element)
-        } 
-    }
-
-}
-
-class CsvParser{
-    constructor(filePath, fileContent){
-        this.filePath = filePath
-        this.fileContent = fileContent
-        
-
-        this.headers = [];
-        this.accounts = [];
-        
-    }
-
-    toArray(){
-        let rows = this.fileContent.split('\n');
-        
-
-        for (var i = 1; i < rows.length; i++) {
-            var columns = []
-            columns = rows[i].split(',')
-            
-            this.accounts.push(columns) 
-        }
-        
-        //this.headers = rows[0].split(',')
-        let headers = rows[0].split(',')
-        for(var i = 0; i < headers.length; i++){
-            let header = new columnHeader(headers[i]);
-
-            this.accounts.forEach((row)=>{
-                header.addContent(row[i]);
-            });
-            
-            this.headers.push(header);
-        }
-    }
-
-    newLine(newLine){
-        this.accounts.push(newLine)
-        if(newLine.length === this.headers.length){
-            this.fileContent += '\n';
-            for (var i = 0; i < newLine.length; i++) {
-                this.fileContent += newLine[i]
-                
-                if(i < newLine.length - 1){
-                    this.fileContent += ','
-                } 
-            }
-            
-            console.log("New file content " + this.fileContent);
-        }
-        
-    }
-}
 
 function arrayToCsv(accounts){ //array of array to csv string
     
@@ -192,6 +127,80 @@ function saveFile(fileContent){
     });
 }
 
+function domParsedFilter(domParsed, element){
+    
+    let newAccounts = [];
+
+    domParsed.accounts.forEach((account)=>{
+    
+        if(account.indexOf(element) !== -1){
+            newAccounts.push(account);
+            
+        }
+        
+    });
+
+    domParsed.accounts = newAccounts;
+    
+    //domParsed.headers.forEach((header)=>{
+    //    
+    //    for(let i = 0; i < header.columnElements.length; i++){
+    //        for(let j = 0; j < domParsed.accounts.length; j++){
+    //            if(domParsed.accounts[j].indexOf(header.columnElements[i]) !== -1){
+    //                break;
+    //            } else if(j === domParsed.accounts.length - 1){
+    //                console.log("elemento que será eliminado "+ header.columnElements[i]);
+    //                header.columnElements.pop(i);
+    //            }
+//
+    //        }
+    //    }
+    //});
+    for(let a = 0; a < domParsed.headers.length; a++){
+        for(let i = 0; i < domParsed.headers[a].columnElements.length; i++){
+            for(let j = 0; j < domParsed.accounts.length; j++){
+                if(domParsed.accounts[j].indexOf(domParsed.headers[a].columnElements[i]) !== -1){
+                    break;
+                } else if(j === domParsed.accounts.length - 1){
+                    console.log("elemento que será eliminado "+ domParsed.headers[a].columnElements[i]);
+                    domParsed.headers[a].columnElements.pop(i);
+                }
+
+            }
+        }
+    }
+    console.log("e agora " + domParsed.headers[0]);
+    return domParsed
+}
+
+function deepObjClone(source){
+
+  if(typeof(source) !== "object"){
+    return source
+  }
+
+  if(Array.isArray(source)){
+  
+    let lista = []
+    
+    for(let i = 0; i < source.length; i++){
+
+      lista[i] = deepObjClone(source[i])
+      
+    }
+
+    return lista;
+    
+  }
+  
+  let copy = {}
+  for(let keys in source){
+    copy[keys] = deepObjClone(source[keys]); 
+  }
+
+  return copy;
+}
+
 export default class Geral extends React.Component{
     state = {
         parsed:null,
@@ -255,7 +264,7 @@ export default class Geral extends React.Component{
 
     };
 
-    domFilter = (element)=>{
+    domFilter = (element, headerName)=>{
 
         let isHeader = false;
         this.state.parsed.headers.forEach((header)=>{
@@ -266,28 +275,24 @@ export default class Geral extends React.Component{
 
         let domParsed;
         if(this.state.domParsed === null || isHeader){
-            domParsed = Object.assign({}, this.state.parsed);
+            domParsed = deepObjClone(this.state.parsed)
+            //domParsed = Object.assign({}, this.state.parsed);
         } else {
-            domParsed = Object.assign({}, this.state.domParsed);
+            domParsed = deepObjClone(this.state.domParsed)
+            //domParsed = Object.assign({}, this.state.domParsed);
         }
-        console.log(domParsed)
-        console.log(this.state.parsed)
         
+        console.log("parsed 1 " + this.state.parsed.headers[0].columnElements)
+        
+        console.log("local domParsed 1 " + domParsed.headers[0].columnElements)
+        console.log("element " + element)
 
         if(!isHeader){
-            let newAccounts = [];
-
-            domParsed.accounts.forEach((account)=>{
-            
-                if(account.indexOf(element) !== -1){
-                    newAccounts.push(account);
-                }
-            });
-
-            domParsed.accounts = newAccounts;
-            
-           
+            domParsed = domParsedFilter(domParsed, element);
         }
+
+        console.log("parsed 2 " + this.state.parsed.headers[0].columnElements)        
+        console.log("local domParsed 2 " + domParsed.headers[0].columnElements)
 
         this.setState({
             domParsed: domParsed
@@ -299,7 +304,6 @@ export default class Geral extends React.Component{
     render(){
         return (
             <>  
-                
                 
                 <table>
                     <tr>
