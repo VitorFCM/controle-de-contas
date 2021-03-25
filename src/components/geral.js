@@ -129,63 +129,50 @@ function saveFile(fileContent){
 
 function domParsedFilter(domParsed, element){
     
-    let newAccounts = [];
-
-    domParsed.accounts.forEach((account)=>{
+    
+    domParsed.accounts = domParsed.accounts.filter((account)=>{
     
         if(account.indexOf(element) !== -1){
-            newAccounts.push(account);
-            
+            return true
+        } else {
+            return false
         }
         
     });
 
-    domParsed.accounts = newAccounts;
-    
-    //domParsed.headers.forEach((header)=>{
-    //    
-    //    for(let i = 0; i < header.columnElements.length; i++){
-    //        for(let j = 0; j < domParsed.accounts.length; j++){
-    //            if(domParsed.accounts[j].indexOf(header.columnElements[i]) !== -1){
-    //                break;
-    //            } else if(j === domParsed.accounts.length - 1){
-    //                console.log("elemento que será eliminado "+ header.columnElements[i]);
-    //                header.columnElements.pop(i);
-    //            }
-//
-    //        }
-    //    }
-    //});
-    for(let a = 0; a < domParsed.headers.length; a++){
-        for(let i = 0; i < domParsed.headers[a].columnElements.length; i++){
+    domParsed.headers.forEach((header)=>{
+
+        header.columnElements = header.columnElements.filter((element)=>{
+            
             for(let j = 0; j < domParsed.accounts.length; j++){
-                if(domParsed.accounts[j].indexOf(domParsed.headers[a].columnElements[i]) !== -1){
-                    break;
+
+                if(domParsed.accounts[j].indexOf(element) !== -1){
+                    return true;
                 } else if(j === domParsed.accounts.length - 1){
-                    console.log("elemento que será eliminado "+ domParsed.headers[a].columnElements[i]);
-                    domParsed.headers[a].columnElements.pop(i);
+                    return false;
                 }
 
             }
-        }
-    }
-    console.log("e agora " + domParsed.headers[0]);
-    return domParsed
+        });
+        
+    });
+    
+    return domParsed;
 }
 
 function deepObjClone(source){
 
   if(typeof(source) !== "object"){
-    return source
+    return source;
   }
 
   if(Array.isArray(source)){
   
-    let lista = []
+    let lista = [];
     
     for(let i = 0; i < source.length; i++){
 
-      lista[i] = deepObjClone(source[i])
+      lista[i] = deepObjClone(source[i]);
       
     }
 
@@ -276,23 +263,13 @@ export default class Geral extends React.Component{
         let domParsed;
         if(this.state.domParsed === null || isHeader){
             domParsed = deepObjClone(this.state.parsed)
-            //domParsed = Object.assign({}, this.state.parsed);
         } else {
             domParsed = deepObjClone(this.state.domParsed)
-            //domParsed = Object.assign({}, this.state.domParsed);
         }
         
-        console.log("parsed 1 " + this.state.parsed.headers[0].columnElements)
-        
-        console.log("local domParsed 1 " + domParsed.headers[0].columnElements)
-        console.log("element " + element)
-
         if(!isHeader){
             domParsed = domParsedFilter(domParsed, element);
         }
-
-        console.log("parsed 2 " + this.state.parsed.headers[0].columnElements)        
-        console.log("local domParsed 2 " + domParsed.headers[0].columnElements)
 
         this.setState({
             domParsed: domParsed
