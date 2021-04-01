@@ -14,10 +14,21 @@ import CsvParser from '../classes/CsvParser'
 const fs = window.require('fs');
 const {dialog} = window.require('electron').remote;
 
-function arrayToCsv(accounts){ //array of array to csv string
+function arrayToCsv(domParsed){ //array of array to csv string
     
-    let fileString;
-    accounts.forEach((account)=>{
+    let fileString = "";
+    
+    console.log(fileString)
+    for(var i = 0; i < domParsed.headers.length; i++){
+        fileString += domParsed.headers[i].name
+
+        if(i < domParsed.headers.length - 1){
+            fileString += ','
+        }
+    }
+    fileString += '\n';
+
+    domParsed.accounts.forEach((account)=>{
         
         for (var i = 0; i < account.length; i++) {
             fileString += account[i]//deve ter um undefined
@@ -139,7 +150,7 @@ function domParsedFilter(domParsed, element){
         }
         
     });
-
+ 
     domParsed.headers.forEach((header)=>{
 
         header.columnElements = header.columnElements.filter((element)=>{
@@ -302,7 +313,7 @@ export default class Geral extends React.Component{
                 <button id="openFile" onClick={() => this.setNewParsed(openFile())}>Carregar arquivo csv</button>
 
                 {this.state.domParsed === null ? null
-                : <button id="saveFile" onClick={() => saveFile(arrayToCsv(this.state.domParsed.accounts))}>Salvar arquivo</button>
+                : <button id="saveFile" onClick={() => saveFile(arrayToCsv(this.state.domParsed))}>Salvar arquivo</button>
                 }
             </>
         );
